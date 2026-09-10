@@ -16,5 +16,5 @@ namespace SimpleCICD.Controllers
                 status = "success"
             });
         }
-    }
+    
 }
