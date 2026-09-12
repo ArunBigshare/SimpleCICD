@@ -9,18 +9,18 @@ on:
 jobs:
   publish:
     runs-on: self-hosted
+
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         ref: ${{ github.event.workflow_run.head_sha }}
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+    - name: Check .NET
+      run: dotnet --version
 
     - name: Restore dependencies
       run: dotnet restore
@@ -29,18 +29,17 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: Publish application
-      run: dotnet publish --configuration Release --output ${{ github.workspace }}/publish --no-build
+      run: dotnet publish --configuration Release --output "${{ github.workspace }}/publish" --no-build
 
     - name: Verify publish output
-      run: ls -la ${{ github.workspace }}/publish
+      run: dir "${{ github.workspace }}\publish"
 
     - name: Create deployment package
       run: |
-        cd ${{ github.workspace }}/publish
-        zip -r ${{ github.workspace }}/SimpleCICD.zip .
+        Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\SimpleCICD.zip" -Force
 
     - name: Verify zip was created
-      run: ls -la ${{ github.workspace }}/SimpleCICD.zip
+      run: dir "${{ github.workspace }}\SimpleCICD.zip"
 
     - name: Upload deployment package
       uses: actions/upload-artifact@v4
