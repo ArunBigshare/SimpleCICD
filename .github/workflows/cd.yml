@@ -7,47 +7,43 @@ on:
       - completed
 
 jobs:
-
   publish:
-
-    # Run only when CI has succeeded
+    runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
-    runs-on: ubuntu-latest
-
     steps:
-
-    # Step 1: Get the source code
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.workflow_run.head_sha }}
 
-    # Step 2: Install .NET 8
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
 
-    # Step 3: Restore NuGet packages
     - name: Restore dependencies
       run: dotnet restore
 
-    # Step 4: Build the application
     - name: Build application
       run: dotnet build --configuration Release --no-restore
 
-    # Step 5: Publish the application
     - name: Publish application
-      run: dotnet publish --configuration Release --output ./publish --no-build
+      run: dotnet publish --configuration Release --output ${{ github.workspace }}/publish --no-build
 
-    # Step 6: Create ZIP file
+    - name: Verify publish output
+      run: ls -la ${{ github.workspace }}/publish
+
     - name: Create deployment package
       run: |
-        cd publish
-        zip -r ../SimpleCICD.zip .
+        cd ${{ github.workspace }}/publish
+        zip -r ${{ github.workspace }}/SimpleCICD.zip .
 
-    # Step 7: Upload package to GitHub
+    - name: Verify zip was created
+      run: ls -la ${{ github.workspace }}/SimpleCICD.zip
+
     - name: Upload deployment package
       uses: actions/upload-artifact@v4
       with:
         name: SimpleCICD
-        path: SimpleCICD.zip
+        path: ${{ github.workspace }}/SimpleCICD.zip
