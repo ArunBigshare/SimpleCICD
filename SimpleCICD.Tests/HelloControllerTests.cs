@@ -40,7 +40,7 @@ namespace SimpleCICD.Tests
             var messageProperty = value.GetType().GetProperty("message");
             var message = messageProperty.GetValue(value, null) as string;
 
-            Assert.Equal("Hello from CI/CD Updated Version 2!", message);
+            Assert.Equal("Hello from CI/CD Updated Version 2.0!", message);
         }
     }
 }
