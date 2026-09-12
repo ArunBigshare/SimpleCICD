@@ -11,7 +11,7 @@ namespace SimpleCICD.Controllers
         {
             return Ok(new
             {
-                message = "Welcome to CI/CD Pipeline Updated Version 2.0!",
+                message = "Welcome to CI/CD Pipeline deploy Version 2.0!",
                 timestamp = DateTime.UtcNow,
                 status = "success"
             });

@@ -46,3 +46,46 @@ jobs:
       with:
         name: SimpleCICD
         path: ${{ github.workspace }}/SimpleCICD.zip
+
+  deploy-to-iis:
+    needs: publish
+    runs-on: self-hosted
+
+    steps:
+
+    - name: Download deployment package
+      uses: actions/download-artifact@v4
+      with:
+        name: SimpleCICD
+        path: C:\deploy-temp
+
+    - name: Stop IIS site and app pool
+      shell: powershell
+      run: |
+        Import-Module WebAdministration
+        Stop-WebSite -Name "YourSiteName" -ErrorAction SilentlyContinue
+        Stop-WebAppPool -Name "YourAppPoolName" -ErrorAction SilentlyContinue
+
+    - name: Clear old deployment files
+      shell: powershell
+      run: |
+        Remove-Item -Path "C:\inetpub\wwwroot\TestCICD\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+    - name: Extract new deployment
+      shell: powershell
+      run: |
+        Expand-Archive -Path "C:\deploy-temp\SimpleCICD.zip" -DestinationPath "C:\inetpub\wwwroot\TestCICD" -Force
+
+    - name: Start IIS site and app pool
+      shell: powershell
+      run: |
+        Import-Module WebAdministration
+        Start-WebAppPool -Name "TestCICD"
+        Start-WebSite -Name "TestCICD"
+
+    - name: Verify site is running
+      shell: powershell
+      run: |
+        Import-Module WebAdministration
+        Get-WebAppPoolState -Name "TestCICD"
+        Get-WebsiteState -Name "TestCICD"

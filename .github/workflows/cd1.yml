@@ -1,0 +1,48 @@
+name: ASP.NET Core CD
+
+on:
+  workflow_run:
+    workflows: ["ASP.NET Core CI"]
+    types:
+      - completed
+
+jobs:
+  publish:
+    runs-on: self-hosted
+
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.workflow_run.head_sha }}
+
+    - name: Check .NET
+      run: dotnet --version
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build application
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Publish application
+      run: dotnet publish --configuration Release --output "${{ github.workspace }}/publish" --no-build
+
+    - name: Verify publish output
+      run: dir "${{ github.workspace }}\publish"
+
+    - name: Create deployment package
+      run: |
+        Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\SimpleCICD.zip" -Force
+
+    - name: Verify zip was created
+      run: dir "${{ github.workspace }}\SimpleCICD.zip"
+
+    - name: Upload deployment package
+      uses: actions/upload-artifact@v4
+      with:
+        name: SimpleCICD
+        path: ${{ github.workspace }}/SimpleCICD.zip
