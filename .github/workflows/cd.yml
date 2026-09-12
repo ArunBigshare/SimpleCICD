@@ -1,0 +1,53 @@
+name: ASP.NET Core CD
+
+on:
+  workflow_run:
+    workflows: ["ASP.NET Core CI"]
+    types:
+      - completed
+
+jobs:
+
+  publish:
+
+    # Run only when CI has succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # Step 1: Get the source code
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Step 2: Install .NET 8
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    # Step 3: Restore NuGet packages
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # Step 4: Build the application
+    - name: Build application
+      run: dotnet build --configuration Release --no-restore
+
+    # Step 5: Publish the application
+    - name: Publish application
+      run: dotnet publish --configuration Release --output ./publish --no-build
+
+    # Step 6: Create ZIP file
+    - name: Create deployment package
+      run: |
+        cd publish
+        zip -r ../SimpleCICD.zip .
+
+    # Step 7: Upload package to GitHub
+    - name: Upload deployment package
+      uses: actions/upload-artifact@v4
+      with:
+        name: SimpleCICD
+        path: SimpleCICD.zip
