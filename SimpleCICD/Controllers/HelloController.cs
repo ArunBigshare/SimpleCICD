@@ -11,7 +11,7 @@ namespace SimpleCICD.Controllers
         {
             return Ok(new
             {
-                message = "Hello from CI/CD Updated Version 2.0!",
+                message = "Welcome to CI/CD Updated Version 2.0!",
                 timestamp = DateTime.UtcNow,
                 status = "success"
             });
